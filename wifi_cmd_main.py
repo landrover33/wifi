@@ -8,6 +8,8 @@ from ZODB import FileStorage, DB
 import transaction
 from typing import List
 import uuid
+import pprint
+
 # ====================  classes  ==================================
 
 
@@ -209,8 +211,11 @@ wifi_instances = read_all_wifi_instances(connection)
 # Iterate over the wifi instances and print each instance
 for wifi_instance in wifi_instances:
     print(wifi_instance)
+    # pprint.pprint(wifi_instance.__dict__)
+    print()
 
-
+print(
+    f"-----------------------------\nTotal no of Wifi readings: {len(wifi_instances)}")
 # Close the connection and clean up resources
 connection.close()
 db.close()
