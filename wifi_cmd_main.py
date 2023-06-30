@@ -2,6 +2,7 @@ import subprocess
 from typing import Dict, Union
 from persistent import Persistent
 import time
+import datetime
 import os
 from BTrees.OOBTree import OOBTree
 from ZODB import FileStorage, DB
@@ -59,7 +60,7 @@ class Wifi(Persistent):
             f"Signal: {self.Signal}",
             f"Profile: {self.Profile}",
             f"Hosted Network Status: {self.Hosted_network_status}",
-            f"Time Stamp: {self.timestamp}"
+            f"Time of Reading: {convert_unix_timestamp(self.timestamp)}"
         ]
         return "\n".join(attributes)
 
@@ -126,6 +127,33 @@ def delete_wifi_instance(connection, wifi_id):
     return False
 
 
+def search_wifi_instances(connection, attribute, value):
+    """
+    Search for WiFi instances in ZODB based on a specific attribute and value.
+
+    Args:
+        connection (ZODB.Connection.Connection): ZODB database connection object.
+        attribute (str): Attribute name to search for.
+        value: Value to match for the specified attribute.
+
+    Returns:
+        list: List of WiFi instances matching the search criteria.
+    """
+    root = connection.root()
+    wifi_table = root.get('wifi_table', None)
+
+    if wifi_table is None:
+        return []
+
+    # Perform a search based on the specified attribute and value
+    matching_instances = []
+    for instance in wifi_table.values():
+        if hasattr(instance, attribute) and getattr(instance, attribute) == value:
+            matching_instances.append(instance)
+
+    return matching_instances
+
+
 # ====================  business functions  ==================================
 
 def get_wifi_details() -> Union[Dict[str, str], Dict[str, Union[str, int]]]:
@@ -183,6 +211,12 @@ def convert_dic_to_wifi_instance(properties):
     return wifi_instance
 
 
+def convert_unix_timestamp(timestamp):
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    formatted_date = dt.strftime("%d/%m/%Y %H:%M")
+    return formatted_date
+
+
 # =====================  Main ============================================
 
 # ...create & open the database connection...
@@ -211,13 +245,27 @@ else:
 
 wifi_instances = read_all_wifi_instances(connection)
 for wifi_instance in wifi_instances:
-    print(wifi_instance)
+    print(str(wifi_instance.id) + "\n" +
+          str(wifi_instance.Signal) + "\n" +
+          convert_unix_timestamp(int(wifi_instance.timestamp)))
     print()
 
 print(
     f"-----------------------------\n\
         Total no of Wifi readings: {len(wifi_instances)}\
         -----------------------------")
+
+# ...Search...
+result = search_wifi_instances(
+    connection, "Description", "Intel(R) Dual Band Wireless-AC 3160")
+size = len(result)
+if size >= 1:
+    print(result[0])
+    print("-----------------------------")
+    print(f"Total {size} readings found.")
+else:
+    print("Not Found")
+
 
 # ...Close the connection and clean up resources...
 connection.close()
