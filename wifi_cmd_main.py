@@ -185,16 +185,19 @@ def convert_dic_to_wifi_instance(properties):
 
 # =====================  Main ============================================
 
-# Create the database connection
+# ...create & open the database connection...
+
 db_name = "wifi_db.fs"
 storage = FileStorage.FileStorage(db_name)
 db = DB(storage)
 connection = db.open()
 
-# get wifi info
+# ...get wifi info...
+
 wifi_properties = get_wifi_details()
 
-# write to zodb
+# ...write to zodb...
+
 if "error" in wifi_properties:
     print("Error:", wifi_properties["error"])
 else:
@@ -204,18 +207,18 @@ else:
     create_wifi_instance(connection, wifi_instance)
 
 
-# read from zodb
+# ...read from zodb...
 
 wifi_instances = read_all_wifi_instances(connection)
-
-# Iterate over the wifi instances and print each instance
 for wifi_instance in wifi_instances:
     print(wifi_instance)
-    # pprint.pprint(wifi_instance.__dict__)
     print()
 
 print(
-    f"-----------------------------\nTotal no of Wifi readings: {len(wifi_instances)}")
-# Close the connection and clean up resources
+    f"-----------------------------\n\
+        Total no of Wifi readings: {len(wifi_instances)}\
+        -----------------------------")
+
+# ...Close the connection and clean up resources...
 connection.close()
 db.close()
